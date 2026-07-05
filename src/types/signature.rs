@@ -2,7 +2,6 @@ use crate::types::keypair::{PublicKey, PublicKeyError};
 
 use curve25519_dalek::edwards::CompressedEdwardsY;
 use derive_more::{From, Into};
-use ed25519_dalek::ed25519::signature::{Error as SignatureCrateError, Signature as SignatureTrait};
 use ed25519_dalek::{Signature as Ed25519Signature, SIGNATURE_LENGTH};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::convert::TryFrom;
@@ -26,7 +25,7 @@ pub enum SignatureError {
 }
 
 impl Default for Signature {
-    fn default() -> Self { Signature(Ed25519Signature::try_from([0u8; 64]).expect("00'd signature is valid")) }
+    fn default() -> Self { Signature(Ed25519Signature::from_bytes(&[0u8; 64])) }
 }
 
 impl fmt::Display for Signature {
@@ -52,24 +51,11 @@ impl<'de> Deserialize<'de> for Signature {
     }
 }
 
-// trait bound of Signer for Keypair
-impl SignatureTrait for Signature {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, SignatureCrateError> {
-        // Delegate to the inner type's implementation
-        Ed25519Signature::from_bytes(bytes).map(Signature)
-    }
-}
-
-// trait bound of signature_crate::Signature
-impl AsRef<[u8]> for Signature {
-    fn as_ref(&self) -> &[u8] { self.0.as_ref() }
-}
-
 impl TryFrom<&[u8]> for Signature {
     type Error = SignatureError;
 
     fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
-        let signature = Ed25519Signature::from_bytes(bytes)
+        let signature = Ed25519Signature::from_slice(bytes)
             .map(Signature)
             .map_err(SignatureError::ParseSlice)?;
 
@@ -94,7 +80,9 @@ impl Signature {
         let r_bytes = &self.0.to_bytes()[0..SIGNATURE_LENGTH / 2];
 
         // Create a CompressedEdwardsY point from the first 32 bytes
-        CompressedEdwardsY::from_slice(r_bytes).decompress().is_some()
+        CompressedEdwardsY::from_slice(r_bytes)
+            .map(|point| point.decompress().is_some())
+            .unwrap_or(false)
     }
 
     pub fn verify(&self, message: &[u8], public_key: &PublicKey) -> Result<(), SignatureError> {

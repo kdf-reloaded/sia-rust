@@ -1,7 +1,8 @@
 use curve25519_dalek::edwards::CompressedEdwardsY;
-use ed25519_dalek::{ExpandedSecretKey, PublicKey as Ed25519PublicKey, SecretKey,
-                    SignatureError as Ed25519SignatureError, Signer, Verifier, SECRET_KEY_LENGTH};
+use ed25519_dalek::{SignatureError as Ed25519SignatureError, Signer, SigningKey, Verifier,
+                    VerifyingKey as Ed25519PublicKey, SECRET_KEY_LENGTH};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::convert::TryInto;
 use std::fmt;
 use std::str::FromStr;
 use thiserror::Error;
@@ -24,21 +25,25 @@ pub enum KeypairError {
     VerifySignature(#[from] PublicKeyError),
     #[error("Keypair::from_private_bytes: invalid private key {0}")]
     InvalidPrivateKey(#[from] Ed25519SignatureError),
+    #[error("Keypair::from_private_bytes: invalid private key length {0}")]
+    InvalidPrivateKeyLength(usize),
 }
 
 impl Signer<Signature> for Keypair {
     /// Sign a message with this keypair's secret key.
     fn try_sign(&self, message: &[u8]) -> Result<Signature, Ed25519SignatureError> {
-        let expanded: ExpandedSecretKey = (&self.private.0).into();
-        Ok(Signature::from(expanded.sign(message, &self.public.0)))
+        Ok(Signature::from(self.private.0.try_sign(message)?))
     }
 }
 
 impl Keypair {
     pub fn from_private_bytes(bytes: &[u8]) -> Result<Self, KeypairError> {
-        let secret = SecretKey::from_bytes(bytes)?;
-        let public = PublicKey(Ed25519PublicKey::from(&secret));
-        let private = PrivateKey(secret);
+        let secret: [u8; SECRET_KEY_LENGTH] = bytes
+            .try_into()
+            .map_err(|_| KeypairError::InvalidPrivateKeyLength(bytes.len()))?;
+        let signing_key = SigningKey::from_bytes(&secret);
+        let public = PublicKey(signing_key.verifying_key());
+        let private = PrivateKey(signing_key);
         Ok(Keypair { public, private })
     }
 
@@ -54,7 +59,7 @@ impl Keypair {
     pub fn private(&self) -> [u8; SECRET_KEY_LENGTH] { self.private.0.to_bytes() }
 }
 
-struct PrivateKey(SecretKey);
+struct PrivateKey(SigningKey);
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct PublicKey(pub Ed25519PublicKey);
@@ -82,7 +87,10 @@ impl Verifier<Signature> for PublicKey {
 
 impl PublicKey {
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, PublicKeyError> {
-        let public_key = Ed25519PublicKey::from_bytes(bytes)
+        let arr: [u8; 32] = bytes
+            .try_into()
+            .map_err(|_| PublicKeyError::InvalidLength(hex::encode(bytes)))?;
+        let public_key = Ed25519PublicKey::from_bytes(&arr)
             .map(PublicKey)
             .map_err(PublicKeyError::ParseBytes)?;
 
@@ -94,10 +102,10 @@ impl PublicKey {
 
     /// Check if public key is a valid point on the Ed25519 curve
     pub fn validate_point(&self) -> bool {
-        // Create a CompressedEdwardsY point from the first 32 bytes
+        // Create a CompressedEdwardsY point from the 32-byte encoding
         CompressedEdwardsY::from_slice(&self.0.to_bytes())
-            .decompress()
-            .is_some()
+            .map(|point| point.decompress().is_some())
+            .unwrap_or(false)
     }
 
     pub fn as_bytes(&self) -> &[u8] { self.0.as_bytes() }

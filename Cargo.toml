@@ -9,8 +9,8 @@ edition = "2018"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-ed25519-dalek = { version = "1.0.1", features = ["serde"] }
-curve25519-dalek = "3.2.0"
+ed25519-dalek = { version = "2", features = ["serde"] }
+curve25519-dalek = "4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order", "raw_value"] }
 nom = "6.1.2"
