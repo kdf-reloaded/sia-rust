@@ -287,11 +287,3 @@ pub struct EventV2ContractResolution {
     pub siacoin_element: SiacoinElement,
     pub missed: Option<bool>,
 }
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ChainIndexElement {
-    #[serde(flatten)]
-    state_element: StateElement,
-    chain_index: ChainIndex,
-}
