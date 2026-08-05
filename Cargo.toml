@@ -35,7 +35,7 @@ getrandom = { version = "0.2.9", features = ["js"] }
 futures = "0.3"
 js-sys = "0.3.27"
 serde-wasm-bindgen = "0.4.3"
-wasm-bindgen = "0.2.86"
+wasm-bindgen = "0.2.99"
 wasm-bindgen-futures = "0.4.21"
 web-sys = { version = "0.3.55", features = ["Request", "RequestInit", "RequestMode", "Window"] }
 # web-sys = { version = "0.3.55", features = ["console", "Headers", "Request", "RequestInit", "RequestMode", "Response", "Window"] }
@@ -45,4 +45,3 @@ wasm-bindgen-test = { version = "0.3.2" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1.28.2", features = ["rt", "macros"] }
-
