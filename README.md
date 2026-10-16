@@ -17,6 +17,13 @@ Rust nightly-2023-06-01 is the only officially supported toolchain. This was cho
 
 Branch name must have semantic prefix, alphanumeric with dashes, 5-50 characters ( `^(feat|fix|chore|docs|style|refactor|test|perf|ci)\/[a-z0-9\-_]{5,50}$` )
 
+## License
+
+MIT -- see [`LICENSE`](LICENSE). This crate is a Rust port of
+[SiaFoundation/core](https://github.com/SiaFoundation/core) and a client for
+[walletd](https://github.com/SiaFoundation/walletd), both MIT-licensed by The Sia
+Foundation, whose copyright notice `LICENSE` retains alongside this project's own.
+
 ## Contact
 
 For any questions or suggestions, please open an issue on GitHub.
