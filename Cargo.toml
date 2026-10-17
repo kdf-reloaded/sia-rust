@@ -18,12 +18,12 @@ blake2b_simd = "0.5"
 chrono = { version = "0.4.23", "features" = ["serde"] }
 log = { version = "0.4.19", "features" = ["std"] }
 hex = { version = "0.4.2", "features" = ["serde"] }
-reqwest = { version = "0.11.9", features = ["json", "rustls-tls"], default-features = false }
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
 base64 = "0.21.2"
 url = { version = "2.2.2", features = ["serde"] }
 derive_more = "0.99.11"
 rustc-hex = "2"
-http = "0.2.12"
+http = "1"
 async-trait = "0.1.76"
 thiserror = "1.0.40"
 percent-encoding = "2.1.0"
@@ -37,7 +37,7 @@ js-sys = "0.3.27"
 serde-wasm-bindgen = "0.4.3"
 wasm-bindgen = "0.2.99"
 wasm-bindgen-futures = "0.4.21"
-web-sys = { version = "0.3.55", features = ["Request", "RequestInit", "RequestMode", "Window"] }
+web-sys = { version = "0.3.70", features = ["Request", "RequestInit", "RequestMode", "Window"] }
 # web-sys = { version = "0.3.55", features = ["console", "Headers", "Request", "RequestInit", "RequestMode", "Response", "Window"] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
