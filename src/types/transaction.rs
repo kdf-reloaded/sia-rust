@@ -48,7 +48,7 @@ impl Currency {
 
     /// A default fee amount for transactions
     /// The appropriate way to calculate a txfee to use walletd's `api/txpool/fee` endpoint.
-    pub const DEFAULT_FEE: Currency = Currency(20_000_000_000_000_000_000); // 0.02 SC
+    pub const DEFAULT_FEE: Currency = Currency(20_000_000_000_000_000_000); // 0.00002 SC (2e19 hastings; 1 SC = 1e24 hastings)
 }
 
 // TODO does this also need to be able to deserialize from an integer?
