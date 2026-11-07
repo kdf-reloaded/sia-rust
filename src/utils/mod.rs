@@ -35,3 +35,31 @@ where
 {
     Option::deserialize(deserializer).map(|opt| opt.unwrap_or_default())
 }
+
+/// Deserialize a list one element at a time and leave out an element that does not parse. A null list is an empty
+/// list, as for [`deserialize_null_as_empty_vec`].
+///
+/// A reader of a list that other nodes' transactions end up in (the transaction pool) must not lose the whole list
+/// to one element it cannot read, for example a transaction kind or field this library does not know yet. Each left
+/// out element is reported on the debug log with its position in the list and the kind of its error, never its
+/// content.
+pub(crate) fn deserialize_tolerant_vec<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
+where
+    D: Deserializer<'de>,
+    T: serde::de::DeserializeOwned,
+{
+    let elements: Option<Vec<serde_json::Value>> = Option::deserialize(deserializer)?;
+    let mut parsed = Vec::new();
+    for (index, element) in elements.unwrap_or_default().into_iter().enumerate() {
+        match serde_json::from_value::<T>(element) {
+            Ok(value) => parsed.push(value),
+            Err(e) => log::debug!(
+                "deserialize_tolerant_vec: left out element {} of a list of {}: {:?} error",
+                index,
+                std::any::type_name::<T>(),
+                e.classify()
+            ),
+        }
+    }
+    Ok(parsed)
+}

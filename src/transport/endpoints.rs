@@ -1,7 +1,7 @@
 use crate::transport::client::{Body, EndpointSchema, EndpointSchemaBuilder, SchemaMethod};
 use crate::types::{Address, ApiApplyUpdate, BlockId, ChainIndex, Currency, Event, Hash256, SiacoinElement,
                    SiacoinOutputId, V1Transaction, V2Transaction};
-use crate::utils::deserialize_null_as_empty_vec;
+use crate::utils::{deserialize_null_as_empty_vec, deserialize_tolerant_vec};
 use chrono::{DateTime, Utc};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
@@ -552,9 +552,13 @@ pub struct TxpoolTransactionsRequest;
 #[derive(Clone, Deserialize, Serialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct TxpoolTransactionsResponse {
-    #[serde(deserialize_with = "deserialize_null_as_empty_vec")]
+    /// A transaction this library cannot read is left out of the list instead of failing the whole reply
+    /// (see [`deserialize_tolerant_vec`]).
+    #[serde(deserialize_with = "deserialize_tolerant_vec", default)]
     pub transactions: Vec<V1Transaction>,
-    #[serde(deserialize_with = "deserialize_null_as_empty_vec")]
+    /// A transaction this library cannot read is left out of the list instead of failing the whole reply
+    /// (see [`deserialize_tolerant_vec`]).
+    #[serde(deserialize_with = "deserialize_tolerant_vec", default)]
     pub v2transactions: Vec<V2Transaction>,
 }
 
