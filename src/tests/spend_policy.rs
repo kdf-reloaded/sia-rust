@@ -4,6 +4,31 @@ mod test {
     use std::str::FromStr;
 
     cross_target_tests! {
+        fn test_opaque_keeps_an_opaque_policy() {
+            let policy = SpendPolicy::After(42);
+            let opaque = SpendPolicy::opaque(&policy);
+            assert_eq!(SpendPolicy::opaque(&opaque), opaque);
+            assert_eq!(opaque.opacify(), opaque);
+        }
+
+        fn test_address_of_a_revealed_atomic_swap_policy_equals_the_full_policy() {
+            let success = PublicKey::from_bytes(
+                &hex::decode("0102030000000000000000000000000000000000000000000000000000000000").unwrap(),
+            )
+            .unwrap();
+            let refund = PublicKey::from_bytes(
+                &hex::decode("06C87838297B7BB16AB23946C99DFDF77FF834E35DB07D71E9B1D2B01A11E96D").unwrap(),
+            )
+            .unwrap();
+            let secret_hash = Hash256::from_str("0102030000000000000000000000000000000000000000000000000000000000")
+                .unwrap();
+            let full = SpendPolicy::atomic_swap(&success, &refund, 77, &secret_hash);
+            let claim_revealed = SpendPolicy::atomic_swap_success(&success, &refund, 77, &secret_hash);
+            let refund_revealed = SpendPolicy::atomic_swap_refund(&success, &refund, 77, &secret_hash);
+            assert_eq!(claim_revealed.address(), full.address());
+            assert_eq!(refund_revealed.address(), full.address());
+        }
+
         fn test_serde_spend_policy_above() {
             let j = json!(
             {
