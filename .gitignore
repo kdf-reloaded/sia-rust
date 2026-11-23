@@ -1,3 +1,5 @@
 target/
 
 .vscode/
+# Local worktrees of parallel sessions
+.worktree/
