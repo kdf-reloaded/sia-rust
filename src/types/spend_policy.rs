@@ -204,7 +204,15 @@ impl SpendPolicy {
 
     pub fn threshold(n: u8, of: Vec<SpendPolicy>) -> Self { SpendPolicy::Threshold { n, of } }
 
-    pub fn opaque(p: &SpendPolicy) -> Self { SpendPolicy::Opaque(p.address()) }
+    /// A policy with the same address as `p`, without its semantics. A policy that is already opaque is returned
+    /// unchanged, so the address of a threshold policy as a spend reveals it (the branch not taken already opaque)
+    /// equals the address of the full policy.
+    pub fn opaque(p: &SpendPolicy) -> Self {
+        match p {
+            SpendPolicy::Opaque(_) => p.clone(),
+            _ => SpendPolicy::Opaque(p.address()),
+        }
+    }
 
     pub fn unlock_condition(pubkeys: Vec<PublicKey>, timelock: u64, signatures_required: u64) -> Self {
         SpendPolicy::UnlockConditions(UnlockCondition::new(pubkeys, timelock, signatures_required))
@@ -212,7 +220,7 @@ impl SpendPolicy {
 
     pub fn anyone_can_spend() -> Self { SpendPolicy::threshold(0, vec![]) }
 
-    pub fn opacify(&self) -> Self { SpendPolicy::Opaque(self.address()) }
+    pub fn opacify(&self) -> Self { SpendPolicy::opaque(self) }
 }
 
 impl SpendPolicy {
